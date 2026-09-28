@@ -7,7 +7,7 @@ to skim 10 activities every day.
 ## How it works
 
 1. **Extraction** (`src/gmail_extractor.py`) — reads the bulletin email from Gmail.
-2. **AI filter** (`src/llm_filter.py`) — compares each activity against your
+2. **AI filter** (`src/activity_filter.py`) — compares each activity against your
    preferences (stored in `preferences.json`) using Jev, a typed-decision
    model from TypeSafe AI.
 3. **Notification** (`src/telegram_bot.py`) — sends the summary via Telegram.

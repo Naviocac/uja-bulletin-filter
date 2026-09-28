@@ -1,5 +1,5 @@
 """
-llm_filter.py
+activity_filter.py
 
 Compares each activity from the bulletin against your stored preferences
 using Jev (TypeSafe AI): one typed "is this relevant?" (Noul) judgment per
@@ -11,7 +11,7 @@ an early-access product it can change — check https://docs.typesafe.ai if
 something doesn't match.
 
 Usage:
-    python src/llm_filter.py   (runs on the sample activities below)
+    python src/activity_filter.py   (runs on the sample activities below)
 """
 
 import json

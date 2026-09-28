@@ -10,7 +10,7 @@ and organized on a board (To Do / In Progress / Done) by this script.
 - [ ] Adjust the extractor if the bulletin's HTML is inconsistent
 
 ## Phase 2 — AI integration
-- [x] Write `llm_filter.py` using Jev (TypeSafe AI)
+- [x] Write `activity_filter.py` using Jev (TypeSafe AI)
 - [ ] Get a TypeSafe API key and confirm the filter works
 - [ ] Tune preferences.json and the relevance threshold
 - [ ] Connect the real extracted bulletin text to the filter (split into activities)
