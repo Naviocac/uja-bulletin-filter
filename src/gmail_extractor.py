@@ -1,8 +1,13 @@
 """
 gmail_extractor.py
 
-Connects to Gmail, finds today's UJA bulletin email, and returns its content
-as clean text, ready to be passed to the AI filter.
+Connects to Gmail, finds today's UJA bulletin email, and returns its raw
+HTML content, ready to be split into activities by bulletin_parser.py.
+
+Uses the Gmail API's "raw" format + Python's standard email library instead
+of the "full" format, because "full" was returning bodies with broken
+accented characters (Gmail re-encodes them incorrectly in that format).
+Parsing the raw MIME message ourselves respects each part's real charset.
 
 Usage:
     python src/gmail_extractor.py
@@ -10,8 +15,8 @@ Usage:
 
 import base64
 import os
+from email import message_from_bytes
 
-from bs4 import BeautifulSoup
 from dotenv import load_dotenv
 from google.auth.transport.requests import Request
 from google.oauth2.credentials import Credentials
@@ -54,49 +59,37 @@ def get_gmail_service():
     return build("gmail", "v1", credentials=creds)
 
 
-def _get_html_from_payload(payload):
-    """Walks the whole message payload (which can have several nested parts,
-    e.g. a text/plain version AND a text/html version side by side) and
-    returns the HTML version if one exists ANYWHERE in the tree, falling
-    back to plain text only if no HTML part was found at all."""
-    html, plain = _collect_bodies(payload)
-
-    if html:
-        return html, "html"
-    if plain:
-        return plain, "plain"
-    return None
-
-
-def _collect_bodies(payload):
-    """Recursively gathers the first html and first plain text bodies found
-    anywhere in the payload tree, regardless of the order the parts appear in."""
+def _extract_bodies(mime_message):
+    """Walks every part of the parsed email and returns (html, plain),
+    decoding each part with ITS OWN declared charset (falls back to utf-8),
+    which is what actually fixes the broken accented characters."""
     html = None
     plain = None
 
-    mime = payload.get("mimeType", "")
-    body = payload.get("body", {})
+    for part in mime_message.walk():
+        content_type = part.get_content_type()
+        if part.is_multipart():
+            continue
 
-    if mime == "text/html" and "data" in body:
-        html = _decode(body["data"])
-    elif mime == "text/plain" and "data" in body:
-        plain = _decode(body["data"])
+        charset = part.get_content_charset() or "utf-8"
+        payload = part.get_payload(decode=True)
+        if payload is None:
+            continue
 
-    for part in payload.get("parts", []):
-        child_html, child_plain = _collect_bodies(part)
-        html = html or child_html
-        plain = plain or child_plain
+        text = payload.decode(charset, errors="replace")
+
+        if content_type == "text/html" and html is None:
+            html = text
+        elif content_type == "text/plain" and plain is None:
+            plain = text
 
     return html, plain
 
 
-def _decode(data):
-    return base64.urlsafe_b64decode(data.encode("ASCII")).decode("utf-8", errors="ignore")
-
-
 def fetch_latest_bulletin():
-    """Finds the most recent bulletin and returns its clean text (no HTML tags).
-    Returns None if there's no new bulletin."""
+    """Finds the most recent bulletin and returns its raw HTML (or plain
+    text if the email has no HTML part). Returns None if there's no new
+    bulletin. Also saves the HTML to data/latest_bulletin.html."""
     service = get_gmail_service()
 
     results = (
@@ -110,34 +103,35 @@ def fetch_latest_bulletin():
     if not messages:
         return None
 
-    msg = (
+    raw_message = (
         service.users()
         .messages()
-        .get(userId="me", id=messages[0]["id"], format="full")
+        .get(userId="me", id=messages[0]["id"], format="raw")
         .execute()
     )
+    raw_bytes = base64.urlsafe_b64decode(raw_message["raw"])
+    mime_message = message_from_bytes(raw_bytes)
 
-    content, content_type = _get_html_from_payload(msg["payload"])
+    html, plain = _extract_bodies(mime_message)
 
-    if content_type == "html":
-        # Save the original HTML in case you want to fine-tune the extractor later
+    if html:
         os.makedirs(os.path.join(BASE_DIR, "data"), exist_ok=True)
-        with open(os.path.join(BASE_DIR, "data", "latest_bulletin.html"), "w") as f:
-            f.write(content)
+        with open(
+            os.path.join(BASE_DIR, "data", "latest_bulletin.html"),
+            "w",
+            encoding="utf-8",
+        ) as f:
+            f.write(html)
+        return html
 
-        soup = BeautifulSoup(content, "html.parser")
-        text = soup.get_text(separator="\n", strip=True)
-    else:
-        text = content
-
-    return text
+    return plain
 
 
 if __name__ == "__main__":
-    text = fetch_latest_bulletin()
+    content = fetch_latest_bulletin()
 
-    if text is None:
+    if content is None:
         print("No new bulletin found with query:", GMAIL_QUERY)
     else:
         print("Bulletin extracted successfully. First 500 characters:\n")
-        print(text[:500])
+        print(content[:500])
