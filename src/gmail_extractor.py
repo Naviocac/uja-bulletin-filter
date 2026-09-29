@@ -55,26 +55,39 @@ def get_gmail_service():
 
 
 def _get_html_from_payload(payload):
-    """Walks the message payload (which can have several nested parts)
-    and returns the first HTML block found, or the plain text if there's no HTML."""
-    if payload.get("mimeType") == "text/html" and "data" in payload.get("body", {}):
-        return _decode(payload["body"]["data"]), "html"
+    """Walks the whole message payload (which can have several nested parts,
+    e.g. a text/plain version AND a text/html version side by side) and
+    returns the HTML version if one exists ANYWHERE in the tree, falling
+    back to plain text only if no HTML part was found at all."""
+    html, plain = _collect_bodies(payload)
 
-    if payload.get("mimeType") == "text/plain" and "data" in payload.get("body", {}):
-        plain = _decode(payload["body"]["data"])
-
-    else:
-        plain = None
-
-    for part in payload.get("parts", []):
-        result = _get_html_from_payload(part)
-        if result:
-            return result
-
+    if html:
+        return html, "html"
     if plain:
         return plain, "plain"
-
     return None
+
+
+def _collect_bodies(payload):
+    """Recursively gathers the first html and first plain text bodies found
+    anywhere in the payload tree, regardless of the order the parts appear in."""
+    html = None
+    plain = None
+
+    mime = payload.get("mimeType", "")
+    body = payload.get("body", {})
+
+    if mime == "text/html" and "data" in body:
+        html = _decode(body["data"])
+    elif mime == "text/plain" and "data" in body:
+        plain = _decode(body["data"])
+
+    for part in payload.get("parts", []):
+        child_html, child_plain = _collect_bodies(part)
+        html = html or child_html
+        plain = plain or child_plain
+
+    return html, plain
 
 
 def _decode(data):
