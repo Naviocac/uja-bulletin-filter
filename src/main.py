@@ -2,8 +2,8 @@
 main.py
 
 Runs the full pipeline once: fetch today's bulletin from Gmail, split it
-into activities, filter them with Jev against your preferences, and print
-the result — a preview of what the Telegram bot will eventually send.
+into activities, filter them with Jev against your preferences, and send
+the result to Telegram.
 
 Usage:
     python src/main.py
@@ -12,6 +12,7 @@ Usage:
 from activity_filter import filter_activities
 from bulletin_parser import parse_activities
 from gmail_extractor import fetch_latest_bulletin
+from telegram_bot import send_message
 
 
 def build_summary(relevant_activities):
@@ -38,8 +39,12 @@ def run():
     print(f"Extracted {len(activities)} activities from today's bulletin.\n")
 
     relevant = filter_activities(activities)
+    summary = build_summary(relevant)
 
-    print(build_summary(relevant))
+    print(summary)
+
+    sent = send_message(summary)
+    print("\nSent to Telegram!" if sent else "\nCould not send the message to Telegram.")
 
 
 if __name__ == "__main__":
