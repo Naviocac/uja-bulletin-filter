@@ -1,0 +1,41 @@
+name: Daily bulletin filter
+
+on:
+  schedule:
+    # 07:00 in Spain (CEST, UTC+2) = 05:00 UTC. During winter (CET, UTC+1)
+    # this will fire at 06:00 local time instead — GitHub Actions schedules
+    # always run in UTC, they don't shift with daylight saving time.
+    - cron: "0 5 * * *"
+  workflow_dispatch: {} # lets you trigger a run manually from the Actions tab, for testing
+
+jobs:
+  run-pipeline:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out the repo
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Recreate credentials and secrets as files
+        env:
+          GMAIL_CREDENTIALS_JSON: ${{ secrets.GMAIL_CREDENTIALS_JSON }}
+          GMAIL_TOKEN_JSON: ${{ secrets.GMAIL_TOKEN_JSON }}
+        run: |
+          echo "$GMAIL_CREDENTIALS_JSON" > credentials.json
+          echo "$GMAIL_TOKEN_JSON" > token.json
+
+      - name: Run the pipeline
+        env:
+          BULLETIN_SENDER_EMAIL: ${{ secrets.BULLETIN_SENDER_EMAIL }}
+          TYPESAFE_API_KEY: ${{ secrets.TYPESAFE_API_KEY }}
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: python src/main.py
