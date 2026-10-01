@@ -1,0 +1,98 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" width="1600" height="900" font-family="Inter, 'SF Pro Display', -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif">
+  <rect width="1600" height="900" fill="#0d1117"/>
+
+  <!-- ============ Stage 1: Gmail Inbox ============ -->
+  <g transform="translate(55,250)">
+    <rect width="250" height="270" rx="18" fill="#161b22" stroke="#7aa2f7" stroke-opacity="0.55" stroke-width="1.5"/>
+    <text x="22" y="36" font-size="13" font-weight="600" fill="#7aa2f7" letter-spacing="1.5">01</text>
+    <g transform="translate(125,95)" fill="none" stroke="#7aa2f7" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+      <rect x="-32" y="-22" width="64" height="44" rx="6"/>
+      <path d="M-32,-16 L0,6 L32,-16"/>
+    </g>
+    <text x="125" y="180" text-anchor="middle" font-size="23" font-weight="600" fill="#e6edf3">Gmail Inbox</text>
+    <text x="125" y="212" text-anchor="middle" font-size="15" fill="#8b949e">Daily bulletin email</text>
+  </g>
+
+  <!-- ============ Stage 2: Gmail Extractor ============ -->
+  <g transform="translate(365,250)">
+    <rect width="250" height="270" rx="18" fill="#161b22" stroke="#5cc4b4" stroke-opacity="0.55" stroke-width="1.5"/>
+    <text x="22" y="36" font-size="13" font-weight="600" fill="#5cc4b4" letter-spacing="1.5">02</text>
+    <g transform="translate(125,95)" fill="none" stroke="#5cc4b4" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+      <rect x="-36" y="-24" width="52" height="38" rx="5"/>
+      <path d="M-36,-18 L-10,0 L16,-18"/>
+      <circle cx="14" cy="8" r="15" fill="#161b22"/>
+      <path d="M25,19 L38,32"/>
+    </g>
+    <text x="125" y="180" text-anchor="middle" font-size="23" font-weight="600" fill="#e6edf3">Gmail Extractor</text>
+    <text x="125" y="210" text-anchor="middle" font-size="15" fill="#8b949e">Reads &amp; decodes email</text><text x="125" y="232" text-anchor="middle" font-size="15" fill="#8b949e">(OAuth2)</text>
+  </g>
+
+  <!-- ============ Stage 3: Bulletin Parser ============ -->
+  <g transform="translate(675,250)">
+    <rect width="250" height="270" rx="18" fill="#161b22" stroke="#b39ddb" stroke-opacity="0.55" stroke-width="1.5"/>
+    <text x="22" y="36" font-size="13" font-weight="600" fill="#b39ddb" letter-spacing="1.5">03</text>
+    <g transform="translate(125,95)" fill="none" stroke="#b39ddb" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+      <rect x="-24" y="-32" width="48" height="64" rx="6"/>
+      <rect x="-14" y="-18" width="28" height="7" rx="3" fill="#b39ddb" fill-opacity="0.85" stroke="none"/>
+      <path d="M-14,0 H14" stroke-opacity="0.45"/>
+      <rect x="-14" y="10" width="28" height="7" rx="3" fill="#b39ddb" fill-opacity="0.85" stroke="none"/>
+      <path d="M-14,26 H4" stroke-opacity="0.45" stroke-width="2.5"/>
+    </g>
+    <text x="125" y="180" text-anchor="middle" font-size="23" font-weight="600" fill="#e6edf3">Bulletin Parser</text>
+    <text x="125" y="210" text-anchor="middle" font-size="15" fill="#8b949e">Splits into individual</text><text x="125" y="232" text-anchor="middle" font-size="15" fill="#8b949e">activities</text>
+  </g>
+
+  <!-- ============ Stage 4: AI Filter (Jev) ============ -->
+  <g transform="translate(985,250)">
+    <rect width="250" height="270" rx="18" fill="#161b22" stroke="#e8a46a" stroke-opacity="0.55" stroke-width="1.5"/>
+    <text x="22" y="36" font-size="13" font-weight="600" fill="#e8a46a" letter-spacing="1.5">04</text>
+    <g transform="translate(125,95)" fill="none" stroke="#e8a46a" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M-32,-26 H32 L7,5 V28 L-7,20 V5 Z"/>
+      <circle cx="30" cy="-30" r="3" fill="#e8a46a" stroke="none"/>
+      <circle cx="-34" cy="-34" r="2" fill="#e8a46a" stroke="none" fill-opacity="0.6"/>
+    </g>
+    <text x="125" y="180" text-anchor="middle" font-size="23" font-weight="600" fill="#e6edf3">AI Filter (Jev)</text>
+    <text x="125" y="210" text-anchor="middle" font-size="15" fill="#8b949e">Matches against</text><text x="125" y="232" text-anchor="middle" font-size="15" fill="#8b949e">personal interests</text>
+  </g>
+
+  <!-- ============ Stage 5: Telegram Bot ============ -->
+  <g transform="translate(1295,250)">
+    <rect width="250" height="270" rx="18" fill="#161b22" stroke="#e48fa8" stroke-opacity="0.55" stroke-width="1.5"/>
+    <text x="22" y="36" font-size="13" font-weight="600" fill="#e48fa8" letter-spacing="1.5">05</text>
+    <g transform="translate(125,95)" fill="none" stroke="#e48fa8" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M34,-28 L-34,-4 L-9,7 L3,30 Z"/>
+      <path d="M-9,7 L34,-28"/>
+    </g>
+    <text x="125" y="180" text-anchor="middle" font-size="23" font-weight="600" fill="#e6edf3">Telegram Bot</text>
+    <text x="125" y="210" text-anchor="middle" font-size="15" fill="#8b949e">Sends daily summary</text><text x="125" y="232" text-anchor="middle" font-size="15" fill="#8b949e">notification</text>
+  </g>
+
+  <!-- ============ Arrows between stages ============ -->
+  <g stroke="#6e7681" stroke-width="2" stroke-linecap="round" fill="#6e7681">
+    <line x1="315" y1="385" x2="352" y2="385"/><polygon points="351,378 363,385 351,392" stroke="none"/>
+    <line x1="625" y1="385" x2="662" y2="385"/><polygon points="661,378 673,385 661,392" stroke="none"/>
+    <line x1="935" y1="385" x2="972" y2="385"/><polygon points="971,378 983,385 971,392" stroke="none"/>
+    <line x1="1245" y1="385" x2="1282" y2="385"/><polygon points="1281,378 1293,385 1281,392" stroke="none"/>
+  </g>
+
+  <!-- ============ Orchestration bracket ============ -->
+  <g fill="none" stroke="#6e7681" stroke-width="2" stroke-dasharray="6 6" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M180,540 V584 H1420 V540"/>
+    <path d="M490,540 V584"/><path d="M800,540 V584"/><path d="M1110,540 V584"/>
+    <path d="M800,584 V620"/>
+  </g>
+  <g fill="#6e7681">
+    <circle cx="180" cy="534" r="4"/><circle cx="490" cy="534" r="4"/><circle cx="800" cy="534" r="4"/>
+    <circle cx="1110" cy="534" r="4"/><circle cx="1420" cy="534" r="4"/>
+  </g>
+
+  <!-- ============ GitHub Actions box ============ -->
+  <g transform="translate(490,620)">
+    <rect width="620" height="76" rx="16" fill="#161b22" stroke="#30363d" stroke-width="1.5"/>
+    <g transform="translate(52,38)" fill="none" stroke="#8b949e" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round">
+      <circle r="17"/>
+      <path d="M0,-9 V0 L7,5"/>
+    </g>
+    <text x="92" y="45" font-size="20" font-weight="600" fill="#e6edf3">GitHub Actions <tspan font-weight="400" fill="#8b949e">— runs daily at 10:00 (Spain time)</tspan></text>
+  </g>
+</svg>

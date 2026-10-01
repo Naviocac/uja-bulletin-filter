@@ -1,4 +1,5 @@
 # uja-bulletin-filter
+![Architecture diagram](docs/architecture.svg)
 
 Filters the daily UJA (University of Jaén) bulletin and notifies you on
 Telegram only when something is actually worth reading, instead of having
