@@ -1,8 +1,9 @@
 """
 gmail_extractor.py
 
-Connects to Gmail, finds today's UJA bulletin email, and returns its raw
-HTML content, ready to be split into activities by bulletin_parser.py.
+Connects to Gmail and finds every UJA bulletin email from the last 24h
+(there's usually one per day, but occasionally two). Returns a list of
+raw HTML bodies, ready to be split into activities by bulletin_parser.py.
 
 Uses the Gmail API's "raw" format + Python's standard email library instead
 of the "full" format, because "full" was returning bodies with broken
@@ -30,6 +31,10 @@ SCOPES = ["https://www.googleapis.com/auth/gmail.readonly"]
 
 _sender = os.getenv("BULLETIN_SENDER_EMAIL", "boletin@uja.es")
 GMAIL_QUERY = f"from:{_sender} newer_than:1d"
+
+# Safety cap on how many bulletin emails we'll process in one run — the UJA
+# normally sends one a day, occasionally two, so this is generous headroom.
+MAX_RESULTS = 10
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 CREDENTIALS_PATH = os.path.join(BASE_DIR, "credentials.json")
@@ -86,52 +91,77 @@ def _extract_bodies(mime_message):
     return html, plain
 
 
-def fetch_latest_bulletin():
-    """Finds the most recent bulletin and returns its raw HTML (or plain
-    text if the email has no HTML part). Returns None if there's no new
-    bulletin. Also saves the HTML to data/latest_bulletin.html."""
+def fetch_bulletins():
+    """Finds every bulletin email from the last 24h and returns a list of
+    their raw HTML bodies (oldest first). Returns an empty list if there's
+    no new bulletin. Also saves each one to data/bulletin_<message_id>.html
+    and the most recent one to data/latest_bulletin.html, for debugging."""
     service = get_gmail_service()
 
     results = (
         service.users()
         .messages()
-        .list(userId="me", q=GMAIL_QUERY, maxResults=1)
+        .list(userId="me", q=GMAIL_QUERY, maxResults=MAX_RESULTS)
         .execute()
     )
     messages = results.get("messages", [])
 
     if not messages:
-        return None
+        return []
 
-    raw_message = (
-        service.users()
-        .messages()
-        .get(userId="me", id=messages[0]["id"], format="raw")
-        .execute()
-    )
-    raw_bytes = base64.urlsafe_b64decode(raw_message["raw"])
-    mime_message = message_from_bytes(raw_bytes)
+    # Gmail lists newest first; process oldest first so summaries read in
+    # chronological order if there happen to be two bulletins in one day.
+    messages = list(reversed(messages))
 
-    html, plain = _extract_bodies(mime_message)
+    bodies = []
+    os.makedirs(os.path.join(BASE_DIR, "data"), exist_ok=True)
 
-    if html:
-        os.makedirs(os.path.join(BASE_DIR, "data"), exist_ok=True)
+    for message in messages:
+        raw_message = (
+            service.users()
+            .messages()
+            .get(userId="me", id=message["id"], format="raw")
+            .execute()
+        )
+        raw_bytes = base64.urlsafe_b64decode(raw_message["raw"])
+        mime_message = message_from_bytes(raw_bytes)
+
+        html, plain = _extract_bodies(mime_message)
+        content = html or plain
+
+        if content is None:
+            continue
+
+        bodies.append(content)
+
+        filename = f"bulletin_{message['id']}.html" if html else f"bulletin_{message['id']}.txt"
+        with open(os.path.join(BASE_DIR, "data", filename), "w", encoding="utf-8") as f:
+            f.write(content)
+
+    if bodies:
         with open(
             os.path.join(BASE_DIR, "data", "latest_bulletin.html"),
             "w",
             encoding="utf-8",
         ) as f:
-            f.write(html)
-        return html
+            f.write(bodies[-1])
 
-    return plain
+    return bodies
+
+
+def fetch_latest_bulletin():
+    """Backwards-compatible helper: returns only the most recent bulletin's
+    body, or None if there isn't one. Prefer fetch_bulletins() for the full
+    pipeline, since there can be more than one bulletin in a day."""
+    bodies = fetch_bulletins()
+    return bodies[-1] if bodies else None
 
 
 if __name__ == "__main__":
-    content = fetch_latest_bulletin()
+    bulletins = fetch_bulletins()
 
-    if content is None:
+    if not bulletins:
         print("No new bulletin found with query:", GMAIL_QUERY)
     else:
-        print("Bulletin extracted successfully. First 500 characters:\n")
-        print(content[:500])
+        print(f"Found {len(bulletins)} bulletin(s). First 500 characters of the first one:\n")
+        print(bulletins[0][:500])

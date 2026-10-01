@@ -1,9 +1,9 @@
 """
 main.py
 
-Runs the full pipeline once: fetch today's bulletin from Gmail, split it
-into activities, filter them with Jev against your preferences, and send
-the result to Telegram.
+Runs the full pipeline once: fetch every bulletin received in the last 24h
+(usually one, occasionally two), split them into activities, filter them
+with Jev against your preferences, and send the result to Telegram.
 
 Usage:
     python src/main.py
@@ -11,7 +11,7 @@ Usage:
 
 from activity_filter import filter_activities
 from bulletin_parser import parse_activities
-from gmail_extractor import fetch_latest_bulletin
+from gmail_extractor import fetch_bulletins
 from telegram_bot import send_message
 
 
@@ -29,16 +29,22 @@ def build_summary(relevant_activities):
 
 
 def run():
-    html = fetch_latest_bulletin()
+    bulletins = fetch_bulletins()
 
-    if html is None:
+    if not bulletins:
         print("No new bulletin found today.")
         return
 
-    activities = parse_activities(html)
-    print(f"Extracted {len(activities)} activities from today's bulletin.\n")
+    print(f"Found {len(bulletins)} bulletin(s) today.")
 
-    relevant = filter_activities(activities)
+    # Gather activities from every bulletin found (usually 1, sometimes 2+)
+    all_activities = []
+    for html in bulletins:
+        all_activities.extend(parse_activities(html))
+
+    print(f"Extracted {len(all_activities)} activities in total.\n")
+
+    relevant = filter_activities(all_activities)
     summary = build_summary(relevant)
 
     print(summary)
