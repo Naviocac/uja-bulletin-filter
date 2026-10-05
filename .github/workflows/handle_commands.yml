@@ -1,0 +1,47 @@
+name: Handle Telegram commands
+
+# There's no always-on bot process (that would need a paid server). Instead,
+# this wakes up every 15 minutes, asks Telegram "anything new since last
+# time?", updates data/subscribers.json accordingly, and commits the result
+# back to the repo. Worst case, someone waits ~15 min to see the menu after
+# /start, and up to another ~15 min for a button tap to be reflected.
+
+on:
+  schedule:
+    # Offset from :00/:15/:30/:45 on purpose — same lesson as daily.yml:
+    # exact quarter-hours are a congestion peak across all of GitHub Actions,
+    # so landing a few minutes off reduces how delayed each run gets queued.
+    - cron: "6,21,36,51 * * * *"
+  workflow_dispatch: {} # lets you trigger a run manually from the Actions tab, for testing
+
+permissions:
+  contents: write # needed to commit data/subscribers.json back to the repo
+
+jobs:
+  handle-commands:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out the repo
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run the Telegram command handler
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+        run: python src/telegram_commands.py
+
+      - name: Commit updated subscriber data, if anything changed
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add data/subscribers.json data/telegram_offset.json
+          git diff --staged --quiet || git commit -m "Update subscribers from Telegram commands"
+          git push
